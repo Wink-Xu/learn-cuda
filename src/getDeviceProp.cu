@@ -1,47 +1,26 @@
 #include <stdio.h>
 #include <cuda.h>
-#include <initCUDA.h>
-// struct cudaDeviceProp 
-// {
-//     char name [256];
-//     size_t totalGlobalMem;
-//     size_t sharedMemPerBlock;
-//     int regsPerBlock;
-//     int warpSize;
-//     size_t memPitch;
-//     int maxThreadsPerBlock;
-//     int maxThreadsDim [3];
-//     int maxGridSize [3];
-//     size_t totalConstMem;
-//     int major;
-//     int minor;
-//     int clockRate;
-//     size_t textureAlignment;
-//     int deviceOverlap;
-//     int multiProcessorCount; 
-// };
+#include <getDeviceProp.h>
+
 
 void printDeviceProp(const cudaDeviceProp &prop)
 {
     printf("Device Name : %s.\n", prop.name);
-    printf("totalGlobalMem : %d.\n", prop.totalGlobalMem);
-    printf("sharedMemPerBlock : %d.\n", prop.sharedMemPerBlock);
+    printf("totalGlobalMem : %ld.\n", prop.totalGlobalMem);
+    printf("sharedMemPerBlock : %ld.\n", prop.sharedMemPerBlock);
     printf("regsPerBlock : %d.\n", prop.regsPerBlock);
     printf("warpSize : %d.\n", prop.warpSize);
-    printf("memPitch : %d.\n", prop.memPitch);
     printf("maxThreadsPerBlock : %d.\n", prop.maxThreadsPerBlock);
     printf("maxThreadsDim[0 - 2] : %d %d %d.\n", prop.maxThreadsDim[0], prop.maxThreadsDim[1], prop.maxThreadsDim[2]);
     printf("maxGridSize[0 - 2] : %d %d %d.\n", prop.maxGridSize[0], prop.maxGridSize[1], prop.maxGridSize[2]);
-    printf("totalConstMem : %d.\n", prop.totalConstMem);
+    printf("totalConstMem : %ld.\n", prop.totalConstMem);
     printf("major.minor : %d.%d.\n", prop.major, prop.minor);
     printf("clockRate : %d.\n", prop.clockRate);
-    printf("textureAlignment : %d.\n", prop.textureAlignment);
-    printf("deviceOverlap : %d.\n", prop.deviceOverlap);
     printf("multiProcessorCount : %d.\n", prop.multiProcessorCount);
 }
 
 //CUDA 初始化
-bool InitCUDA()
+bool getDeviceProp()
 {
     int count;
 
@@ -78,10 +57,4 @@ bool InitCUDA()
 
     return true;
 }
-
-// int main()
-// {
-//     InitCUDA();
-//     return 0;
-// }
 

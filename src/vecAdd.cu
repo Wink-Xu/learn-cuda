@@ -5,7 +5,7 @@
 //#include <cuda.h>
 #include <cuda_runtime.h>   // 怎么知道 需要哪些头文件 需要哪些动态库
 #include <time.h>
-#include <initCUDA.h>
+#include <getDeviceProp.h>
 
 /**
  * CPU Kernel host code
@@ -37,7 +37,7 @@ vectorAdd(const float *A, const float *B, float *C, int numElements)
  */
 int main(void)
 {
-    InitCUDA();
+    getDeviceProp();
 
     printf("********************************************\n");
 
@@ -71,6 +71,13 @@ int main(void)
     // Allocate the device vector
     float *d_A = NULL;
     err = cudaMalloc((void **)&d_A, size);
+
+    if (err != cudaSuccess)                              //  后面也需要异常判断 ， 先不加
+    {
+        fprintf(stderr, "Failed to allocate device vector A (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
     float *d_B = NULL;
     err = cudaMalloc((void **)&d_B, size);
     float *d_C = NULL;
@@ -149,4 +156,10 @@ All process of VectorAdd program in GPU running time is 0.217716
 
 Done
 
+
+
+
+硬件概念与软件概念的对应。    硬件 SM->warp->sp  软件 grid->block->thread 如何对应于整合的？
+为啥不用连接库 因为nvcc 就像g++也不需要连接所有的库 
+sms？  GENCODE_FLAGS
 **/
