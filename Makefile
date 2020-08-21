@@ -7,7 +7,7 @@ HOST_COMPILER ?= g++
 NVCC          := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 
 # internal flags
-NVCCFLAGS   := -m64
+NVCCFLAGS   := -m64 
 
 # Debug build flags
 ifeq ($(dbg),1)
@@ -39,10 +39,11 @@ endif
 
 
 # Common includes and paths for CUDA
-INCLUDES  := -I$(CUDA_PATH)/include -I./include
+INCLUDES  := -I$(CUDA_PATH)/include -I./include -I./include/opencv/2.4.9
 
-LIBRARIES := -L$(CUDA_PATH)/lib64
-LDFLAGS := -lcudart
+LIBRARIES := -L$(CUDA_PATH)/lib64 -L./lib/OpenCV
+LDFLAGS :=  -lcudart -lopencv_core -lopencv_highgui -lopencv_imgproc 
+
 
 SOURCE=$(wildcard ./src/*.cu)
 OBJECT=$(foreach n,${SOURCE},$(addsuffix .o , $(basename ${n})))
@@ -50,19 +51,20 @@ OBJECT=$(foreach n,${SOURCE},$(addsuffix .o , $(basename ${n})))
 # Target rules
 all: build
 
-build: vectorAdd
+build: main
 
 %.o:%.cu
 	$(NVCC) $(INCLUDES) $(NVCCFLAGS)  $(GENCODE_FLAGS) -c $< -o $@ 
 
-vectorAdd: ${OBJECT}
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(GENCODE_FLAGS) -o vectorAdd ${OBJECT} ${LIBRARIES}
+
+main: ${OBJECT}
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(GENCODE_FLAGS) -o main ${OBJECT} ${LIBRARIES}
 	cp $@ ./bin
 
 
 clean:
-	rm -f vectorAdd ${OBJECT}
-	rm -rf ./bin/vectorAdd
+	rm -f main ${OBJECT}
+	rm -rf ./bin/main
 
 
 
