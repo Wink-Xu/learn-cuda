@@ -102,7 +102,7 @@ int run_vectorAdd()
 
 int run_colorToGray()
 {
-    cv::Mat image = cv::imread("./car1.jpg");
+    cv::Mat image = cv::imread("./obama.jpg");
     if (image.empty())
     {
         printf(" Wrong Image !!!");
@@ -147,8 +147,8 @@ int run_colorToGray()
     err = cudaMemcpy(d_out_data, out_data, height * width * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
   // int threadsPerBlock = 1024;   
-   dim3 dimGrid(ceil(width/16.0),ceil(height/16.0), 1);                   // 容易犯错
-   dim3 dimBlock(16,16,1);                  
+   dim3 dimGrid(ceil(width/16.0),ceil(height/16.0), 1);                   // 容易犯错   最多可以launch多少个thread？
+   dim3 dimBlock(16,16,1);                   // CUDA kernel launch with 10x6 blocks of 16x16 threads
    printf("CUDA kernel launch with %dx%d blocks of %dx%d threads\n", dimGrid.x, dimGrid.y, dimBlock.x, dimBlock.y);
 
    colorToGray<<<dimGrid, dimBlock>>>(d_in_data, d_out_data, height, width);
@@ -163,7 +163,7 @@ int run_colorToGray()
 
 
     cv::Mat grayImg = Array2Mat(out_data, height, width);
-    cv::imwrite("./car1_gray.jpg", grayImg);
+    cv::imwrite("./obama_gray.jpg", grayImg);
    
    printf("Test PASSED\n");
 
@@ -186,7 +186,7 @@ int run_colorToGray()
 
 int run_meanFilter()
 {
-    cv::Mat image = cv::imread("./car1_gray.jpg", CV_8U);
+    cv::Mat image = cv::imread("./obama_gray.jpg", CV_8U);
     if (image.empty())
     {
         printf(" Wrong Image !!!");
@@ -225,35 +225,34 @@ int run_meanFilter()
     err = cudaMemcpy(d_in_data, in_data, height * width *  sizeof(unsigned char), cudaMemcpyHostToDevice);
     err = cudaMemcpy(d_out_data, out_data, height * width * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
-  // int threadsPerBlock = 1024;   
-   dim3 dimGrid(ceil(width/16.0),ceil(height/16.0), 1);                  
-   dim3 dimBlock(16,16,1);                  
-   printf("CUDA kernel launch with %dx%d blocks of %dx%d threads\n", dimGrid.x, dimGrid.y, dimBlock.x, dimBlock.y);
+    // int threadsPerBlock = 1024;   
+    dim3 dimGrid(ceil(width/16.0),ceil(height/16.0), 1);                  
+    dim3 dimBlock(16,16,1);                  
+    printf("CUDA kernel launch with %dx%d blocks of %dx%d threads\n", dimGrid.x, dimGrid.y, dimBlock.x, dimBlock.y);
 
-   meanFilter<<<dimGrid, dimBlock>>>(d_in_data, d_out_data, height, width);
+    meanFilter<<<dimGrid, dimBlock>>>(d_in_data, d_out_data, height, width);
 
-   printf("Copy output data from the CUDA device to the host memory\n");
-   err = cudaMemcpy(out_data, d_out_data, height * width * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-   if (err != cudaSuccess)                             
-   {
-       fprintf(stderr, "Failed to allocate  (error code %s)!\n", cudaGetErrorString(err));
-       exit(EXIT_FAILURE);
-   }
-
+    printf("Copy output data from the CUDA device to the host memory\n");
+    err = cudaMemcpy(out_data, d_out_data, height * width * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess)                             
+    {
+        fprintf(stderr, "Failed to allocate  (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    
     cv::Mat grayImg = Array2Mat(out_data, height, width);
-    cv::imwrite("./car1_gray_blur.jpg", grayImg);
-   
-   printf("Test PASSED\n");
+    cv::imwrite("./obama_gray_blur.jpg", grayImg);
+    printf("Test PASSED\n");
 
    // Free device global memory
-   err = cudaFree(d_in_data);
-   err = cudaFree(d_out_data);
+    err = cudaFree(d_in_data);
+    err = cudaFree(d_out_data);
 
-   // Free host memory
-   free(in_data);
-   free(out_data);
+    // Free host memory
+    free(in_data);
+    free(out_data);
 
-   printf("Done\n");
+    printf("Done\n");
 
     return 0;
 }

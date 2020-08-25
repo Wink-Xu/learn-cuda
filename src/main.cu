@@ -10,7 +10,7 @@ int main(void)
     printf("********************************************\n");
     
 //  run_vectorAdd();
-//  run_colorToGray();  
+    run_colorToGray();  
     run_meanFilter();
     return 0;
 }
