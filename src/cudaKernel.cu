@@ -43,16 +43,10 @@ vectorAdd(const float *A, const float *B, float *C, int numElements)
          int pixelIndex = row * width + col;
          int rgbIndex = pixelIndex * 3;
 
-         unsigned char r = input[rgbIndex];
+         unsigned char r = input[rgbIndex];                 // rgb rgb rgb rgb rgb
          unsigned char g = input[rgbIndex + 1];
          unsigned char b = input[rgbIndex + 2];
          output[pixelIndex] = r* scale[0] + g * scale[1] + b*scale[2];
-        //  float res = 0;
-        //  for(int i=0; i<3; i++)
-        //  {
-        //       res += input[rgbIndex+i] * scale[i];
-        //  }
-         //output[pixelIndex] = res;
      }
  }
 
@@ -87,3 +81,21 @@ vectorAdd(const float *A, const float *B, float *C, int numElements)
 }
  
 
+ /**
+ * CUDA Kernel Device code   ----  matrix multiply
+ **/
+ 
+ __global__ void
+ matrixMul(float *M, float *N, float *P, int width)
+ {
+    int col= blockDim.x * blockIdx.x + threadIdx.x;
+    int row = blockDim.y * blockIdx.y + threadIdx.y;
+    if (row < width && col < width)
+    {
+        float pValue = 0;
+        for(int k=0; k<width; k++)
+            pValue += M[row * width + k] * N[k * width + col];
+        P[row * width + col] = pValue;    
+    }
+}
+ 

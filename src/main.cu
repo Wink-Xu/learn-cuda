@@ -10,8 +10,9 @@ int main(void)
     printf("********************************************\n");
     
 //  run_vectorAdd();
-    run_colorToGray();  
-    run_meanFilter();
+//    run_colorToGray();  
+//    run_meanFilter();
+    run_matrixMul();
     return 0;
 }
 

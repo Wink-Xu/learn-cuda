@@ -13,3 +13,6 @@ colorToGray(unsigned char *input, unsigned char *output, int m, int n);
 
 __global__ void
 meanFilter(unsigned char *input, unsigned char *output, int m, int n);
+
+__global__ void
+matrixMul(float *M, float *N, float *P, int width);

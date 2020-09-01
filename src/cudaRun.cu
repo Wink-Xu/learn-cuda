@@ -10,6 +10,12 @@
 
 using namespace cv;
 
+// *************************
+//    1. run_vectorAdd()
+//    2. run_colorToGray()
+//    3. run_meanFilter()
+//    4. run_matrixMul()
+// *************************
 
 
 // *************************
@@ -102,7 +108,7 @@ int run_vectorAdd()
 
 int run_colorToGray()
 {
-    cv::Mat image = cv::imread("./obama.jpg");
+    cv::Mat image = cv::imread("./data/obama.jpg");
     if (image.empty())
     {
         printf(" Wrong Image !!!");
@@ -186,7 +192,7 @@ int run_colorToGray()
 
 int run_meanFilter()
 {
-    cv::Mat image = cv::imread("./obama_gray.jpg", CV_8U);
+    cv::Mat image = cv::imread("./data/obama_gray.jpg", CV_8U);
     if (image.empty())
     {
         printf(" Wrong Image !!!");
@@ -255,4 +261,82 @@ int run_meanFilter()
     printf("Done\n");
 
     return 0;
+}
+
+// *************************
+//    Matrix Multiply
+// *************************
+int run_matrixMul()
+{
+
+    // Print the vector length to be used, and compute its size
+    int mRow = 256;
+    int mCol = 128;
+    int nRow = 128;
+    int nCol = 64;
+    size_t sizeM = mRow * mCol * sizeof(float);
+    size_t sizeN = nRow * nCol * sizeof(float);
+    printf("[Matrix multiply of %dx%d * %dx%d]\n", mRow, mCol, nRow, nCol);
+
+    // Allocate the host vector 
+    float *h_M = (float *)malloc(sizeM);
+    float *h_N = (float *)malloc(sizeN);
+    float *h_P = (float *)malloc(mRow * nCol * sizeof(float));
+
+    // Initialize the host input vectors
+    for (int i = 0; i < mRow * mCol; ++i)
+    {
+        h_M[i] = 1;
+    }
+    for (int i = 0; i < nRow * nCol; ++i)
+    {
+        h_N[i] = 1;
+    }    
+  
+    // Error code to check return values for CUDA calls
+    cudaError_t err = cudaSuccess;
+    // Allocate the device vector
+    float *d_M = NULL;
+    err = cudaMalloc((void **)&d_M, sizeM);
+
+    if (err != cudaSuccess)                              //  后面也需要异常判断 ， 先不加
+    {
+        fprintf(stderr, "Failed to allocate device vector A (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+    float *d_N = NULL;
+    err = cudaMalloc((void **)&d_N, sizeN);
+    float *d_P = NULL;
+    err = cudaMalloc((void **)&d_P, mRow * nCol * sizeof(float));
+    printf("Copy input data from the host memory to the CUDA device\n");
+    err = cudaMemcpy(d_M, h_M, sizeM, cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_N, h_N, sizeN, cudaMemcpyHostToDevice);
+
+    dim3 dimGrid(ceil(mRow/16.0),ceil(nCol/16.0), 1);                  
+    dim3 dimBlock(16,16,1);                  
+    printf("CUDA kernel launch with %dx%d blocks of %dx%d threads\n", dimGrid.x, dimGrid.y, dimBlock.x, dimBlock.y);
+
+    matrixMul<<<dimGrid, dimBlock>>>(d_M, d_N, d_P, mCol);
+
+    printf("Copy output data from the CUDA device to the host memory\n");
+    err = cudaMemcpy(h_P, d_P, mRow * nCol * sizeof(float), cudaMemcpyDeviceToHost);
+
+    printf("%f\t %f\n", h_P[0], h_P[1]);
+
+    printf("Test PASSED\n");
+
+    // Free device global memory
+    err = cudaFree(d_M);
+    err = cudaFree(d_N);
+    err = cudaFree(d_P);
+
+    // Free host memory
+    free(h_M);
+    free(h_N);
+    free(h_P);
+
+    printf("Done\n");
+    return 0;
+
 }
