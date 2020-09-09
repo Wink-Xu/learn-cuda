@@ -271,8 +271,8 @@ int run_matrixMul()
 
     // Print the vector length to be used, and compute its size
     int mRow = 256;
-    int mCol = 128;
-    int nRow = 128;
+    int mCol = 127;
+    int nRow = 127;
     int nCol = 64;
     size_t sizeM = mRow * mCol * sizeof(float);
     size_t sizeN = nRow * nCol * sizeof(float);
@@ -313,16 +313,21 @@ int run_matrixMul()
     err = cudaMemcpy(d_M, h_M, sizeM, cudaMemcpyHostToDevice);
     err = cudaMemcpy(d_N, h_N, sizeN, cudaMemcpyHostToDevice);
 
-    dim3 dimGrid(ceil(mRow/16.0),ceil(nCol/16.0), 1);                  
-    dim3 dimBlock(16,16,1);                  
+    dim3 dimGrid(ceil(nCol/8.0),ceil(mRow/8.0), 1);                  
+    dim3 dimBlock(8,8,1);                  
     printf("CUDA kernel launch with %dx%d blocks of %dx%d threads\n", dimGrid.x, dimGrid.y, dimBlock.x, dimBlock.y);
-
+#ifdef SHARED
+    printf("Using shareMemory matrixMul\n");
+    matrixMul_sharedMemory<<<dimGrid, dimBlock>>>(d_M, d_N, d_P, mRow, mCol, nCol);
+#else
+    printf("Using matrixMul\n");
     matrixMul<<<dimGrid, dimBlock>>>(d_M, d_N, d_P, mCol);
-
+#endif
     printf("Copy output data from the CUDA device to the host memory\n");
     err = cudaMemcpy(h_P, d_P, mRow * nCol * sizeof(float), cudaMemcpyDeviceToHost);
 
-    printf("%f\t %f\n", h_P[0], h_P[1]);
+    for(int i =0; i< 4097; i++)
+        printf("%f\t %f\n", h_P[i], h_P[16383 - i]);
 
     printf("Test PASSED\n");
 

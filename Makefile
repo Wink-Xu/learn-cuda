@@ -7,7 +7,7 @@ HOST_COMPILER ?= g++
 NVCC          := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 
 # internal flags
-NVCCFLAGS   := -m64 
+NVCCFLAGS   := -m64 -DSHARED
 
 # Debug build flags
 ifeq ($(dbg),1)
